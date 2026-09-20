@@ -1,0 +1,2 @@
+torch>=2.5
+tiktoken>=0.8
