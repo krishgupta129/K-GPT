@@ -1,4 +1,4 @@
 streamlit>=1.45,<2
-torch==2.5.1
+torch==2.5.1+cpu
 tiktoken>=0.8,<1
 huggingface_hub>=0.30,<1
