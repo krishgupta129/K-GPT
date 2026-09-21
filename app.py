@@ -34,35 +34,56 @@ st.set_page_config(
 
 
 def build_instruction_prompt(instruction, history):
+    instruction_text = (
+        "Answer the current user request using the previous "
+        "conversation only when it is relevant. "
+        "Respond only to the current user request."
+    )
+
     if not history:
         return (
             "Below is an instruction that describes a task. "
             "Write a response that appropriately completes the request."
-            f"\n\n### Instruction:\n{instruction}"
+            f"\n\n### Instruction:\n"
+            f"{instruction_text}\n\n"
+            f"Current user request:\n{instruction}"
             "\n\n### Response:\n"
         )
 
     history_lines = []
 
     for message in history:
-        role = "User" if message["role"] == "user" else "K-GPT"
+        if message["role"] == "user":
+            role = "User"
+        else:
+            role = "K-GPT"
+
         history_lines.append(
             f"{role}: {message['content']}"
         )
 
-    conversation = "\n\n".join(history_lines)
+    history_text = "\n\n".join(history_lines)
 
     return (
         "Below is an instruction that describes a task. "
         "Write a response that appropriately completes the request."
-        "\n\n### Instruction:\n"
-        "Continue the conversation below and answer the latest user "
-        "message naturally. Do not repeat previous messages and do not "
-        "include instruction or response headings in your answer."
+        f"\n\n### Instruction:\n"
+        f"{instruction_text}"
         f"\n\n### Input:\n"
-        f"{conversation}"
-        f"\n\nUser: {instruction}"
+        f"Previous conversation:\n"
+        f"{history_text}"
+        f"\n\nCurrent user request:\n"
+        f"{instruction}"
         "\n\n### Response:\n"
+    )
+
+
+def count_tokens(text):
+    return len(
+        tokenizer.encode(
+            text,
+            allowed_special={"<|endoftext|>"},
+        )
     )
 
 
@@ -75,14 +96,7 @@ def trim_history_for_context(instruction, history):
             usable_history,
         )
 
-        token_count = len(
-            tokenizer.encode(
-                prompt,
-                allowed_special={"<|endoftext|>"},
-            )
-        )
-
-        if token_count <= MAX_CONTEXT_TOKENS:
+        if count_tokens(prompt) <= MAX_CONTEXT_TOKENS:
             return prompt
 
         if len(usable_history) >= 2:
@@ -95,29 +109,28 @@ def trim_history_for_context(instruction, history):
         [],
     )
 
-    tokens = tokenizer.encode(
-        prompt,
-        allowed_special={"<|endoftext|>"},
-    )
-
-    if len(tokens) <= MAX_CONTEXT_TOKENS:
+    if count_tokens(prompt) <= MAX_CONTEXT_TOKENS:
         return prompt
 
-    response_marker = "\n\n### Response:\n"
-
-    instruction_prefix = (
+    prefix = (
         "Below is an instruction that describes a task. "
         "Write a response that appropriately completes the request."
         "\n\n### Instruction:\n"
+        "Answer the current user request using the previous "
+        "conversation only when it is relevant. "
+        "Respond only to the current user request."
+        "\n\nCurrent user request:\n"
     )
 
-    suffix_tokens = tokenizer.encode(
-        response_marker,
+    suffix = "\n\n### Response:\n"
+
+    prefix_tokens = tokenizer.encode(
+        prefix,
         allowed_special={"<|endoftext|>"},
     )
 
-    prefix_tokens = tokenizer.encode(
-        instruction_prefix,
+    suffix_tokens = tokenizer.encode(
+        suffix,
         allowed_special={"<|endoftext|>"},
     )
 
@@ -129,7 +142,7 @@ def trim_history_for_context(instruction, history):
 
     if available_tokens <= 0:
         return tokenizer.decode(
-            tokens[:MAX_CONTEXT_TOKENS]
+            prefix_tokens[:MAX_CONTEXT_TOKENS]
         )
 
     instruction_tokens = tokenizer.encode(
@@ -139,13 +152,13 @@ def trim_history_for_context(instruction, history):
 
     instruction_tokens = instruction_tokens[:available_tokens]
 
-    prompt_tokens = (
+    final_tokens = (
         prefix_tokens
         + instruction_tokens
         + suffix_tokens
     )
 
-    return tokenizer.decode(prompt_tokens)
+    return tokenizer.decode(final_tokens)
 
 
 @st.cache_resource(show_spinner="Loading K-GPT model...")
@@ -186,7 +199,9 @@ def extract_response(output_ids, prompt_token_count):
     ).strip()
 
     if response.startswith("### Response:"):
-        response = response[len("### Response:"):].strip()
+        response = response[
+            len("### Response:"):
+        ].strip()
 
     if "### Response:" in response:
         response = response.split(
@@ -194,20 +209,26 @@ def extract_response(output_ids, prompt_token_count):
             1,
         )[1].strip()
 
-    for marker in (
-        "### Instruction:",
-        "### Input:",
-    ):
-        if marker in response:
-            response = response.split(
-                marker,
-                1,
-            )[0].strip()
+    if "### Instruction:" in response:
+        response = response.split(
+            "### Instruction:",
+            1,
+        )[0].strip()
+
+    if "### Input:" in response:
+        response = response.split(
+            "### Input:",
+            1,
+        )[0].strip()
 
     return response
 
 
-def generate_response(instruction, history, max_new_tokens):
+def generate_response(
+    instruction,
+    history,
+    max_new_tokens,
+):
     model = load_model()
 
     prompt = trim_history_for_context(
@@ -244,7 +265,9 @@ if "messages" not in st.session_state:
 
 
 st.title("K-GPT")
-st.caption("GPT-2 Medium instruction-fine-tuned model.")
+st.caption(
+    "GPT-2 Medium instruction-fine-tuned model."
+)
 
 
 with st.sidebar:
