@@ -24,7 +24,7 @@ BASE_CONFIG = {
 }
 
 MODEL_REPO = "kg5290/K-GPT-model"
-MODEL_FILE = "model/weights/gpt2-medium355M-sft.pth"
+MODEL_FILE = "gpt2-medium355M-sft.pth"
 
 
 @st.cache_resource(show_spinner=False)
