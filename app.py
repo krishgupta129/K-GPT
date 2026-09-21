@@ -34,28 +34,34 @@ st.set_page_config(
 
 
 def build_instruction_prompt(instruction, history):
-    history_text = ""
-
-    if history:
-        history_lines = []
-
-        for message in history:
-            role = "User" if message["role"] == "user" else "K-GPT"
-            history_lines.append(
-                f"{role}: {message['content']}"
-            )
-
-        history_text = (
-            "\n\n### Input:\n"
-            "Previous conversation:\n"
-            + "\n\n".join(history_lines)
+    if not history:
+        return (
+            "Below is an instruction that describes a task. "
+            "Write a response that appropriately completes the request."
+            f"\n\n### Instruction:\n{instruction}"
+            "\n\n### Response:\n"
         )
+
+    history_lines = []
+
+    for message in history:
+        role = "User" if message["role"] == "user" else "K-GPT"
+        history_lines.append(
+            f"{role}: {message['content']}"
+        )
+
+    conversation = "\n\n".join(history_lines)
 
     return (
         "Below is an instruction that describes a task. "
         "Write a response that appropriately completes the request."
-        f"\n\n### Instruction:\n{instruction}"
-        f"{history_text}"
+        "\n\n### Instruction:\n"
+        "Continue the conversation below and answer the latest user "
+        "message naturally. Do not repeat previous messages and do not "
+        "include instruction or response headings in your answer."
+        f"\n\n### Input:\n"
+        f"{conversation}"
+        f"\n\nUser: {instruction}"
         "\n\n### Response:\n"
     )
 
@@ -69,23 +75,77 @@ def trim_history_for_context(instruction, history):
             usable_history,
         )
 
-        if len(tokenizer.encode(prompt)) <= MAX_CONTEXT_TOKENS:
+        token_count = len(
+            tokenizer.encode(
+                prompt,
+                allowed_special={"<|endoftext|>"},
+            )
+        )
+
+        if token_count <= MAX_CONTEXT_TOKENS:
             return prompt
 
-        usable_history.pop(0)
+        if len(usable_history) >= 2:
+            usable_history = usable_history[2:]
+        else:
+            usable_history = []
 
     prompt = build_instruction_prompt(
         instruction,
         [],
     )
 
-    tokens = tokenizer.encode(prompt)
+    tokens = tokenizer.encode(
+        prompt,
+        allowed_special={"<|endoftext|>"},
+    )
 
-    if len(tokens) > MAX_CONTEXT_TOKENS:
-        tokens = tokens[-MAX_CONTEXT_TOKENS:]
-        prompt = tokenizer.decode(tokens)
+    if len(tokens) <= MAX_CONTEXT_TOKENS:
+        return prompt
 
-    return prompt
+    response_marker = "\n\n### Response:\n"
+
+    instruction_prefix = (
+        "Below is an instruction that describes a task. "
+        "Write a response that appropriately completes the request."
+        "\n\n### Instruction:\n"
+    )
+
+    suffix_tokens = tokenizer.encode(
+        response_marker,
+        allowed_special={"<|endoftext|>"},
+    )
+
+    prefix_tokens = tokenizer.encode(
+        instruction_prefix,
+        allowed_special={"<|endoftext|>"},
+    )
+
+    available_tokens = (
+        MAX_CONTEXT_TOKENS
+        - len(prefix_tokens)
+        - len(suffix_tokens)
+    )
+
+    if available_tokens <= 0:
+        return tokenizer.decode(
+            tokens[:MAX_CONTEXT_TOKENS]
+        )
+
+    instruction_tokens = tokenizer.encode(
+        instruction,
+        allowed_special={"<|endoftext|>"},
+    )
+
+    instruction_tokens = instruction_tokens[:available_tokens]
+
+    prompt_tokens = (
+        prefix_tokens
+        + instruction_tokens
+        + suffix_tokens
+    )
+
+    return tokenizer.decode(prompt_tokens)
 
 
 @st.cache_resource(show_spinner="Loading K-GPT model...")
@@ -117,6 +177,36 @@ def load_model():
     return model
 
 
+def extract_response(output_ids, prompt_token_count):
+    generated_ids = output_ids[:, prompt_token_count:]
+
+    response = token_ids_to_text(
+        generated_ids,
+        tokenizer,
+    ).strip()
+
+    if response.startswith("### Response:"):
+        response = response[len("### Response:"):].strip()
+
+    if "### Response:" in response:
+        response = response.split(
+            "### Response:",
+            1,
+        )[1].strip()
+
+    for marker in (
+        "### Instruction:",
+        "### Input:",
+    ):
+        if marker in response:
+            response = response.split(
+                marker,
+                1,
+            )[0].strip()
+
+    return response
+
+
 def generate_response(instruction, history, max_new_tokens):
     model = load_model()
 
@@ -130,6 +220,8 @@ def generate_response(instruction, history, max_new_tokens):
         tokenizer,
     )
 
+    prompt_token_count = token_ids.shape[1]
+
     with torch.inference_mode():
         output_ids = generate(
             model=model,
@@ -139,19 +231,10 @@ def generate_response(instruction, history, max_new_tokens):
             eos_id=50256,
         )
 
-    generated_text = token_ids_to_text(
+    response = extract_response(
         output_ids,
-        tokenizer,
+        prompt_token_count,
     )
-
-    response = generated_text[len(prompt):].strip()
-
-    if "### Response:" in response:
-        response = response.replace(
-            "### Response:",
-            "",
-            1,
-        ).strip()
 
     return response
 
@@ -238,9 +321,11 @@ if prompt:
 
         except Exception as exc:
             st.session_state.messages.pop()
+
             st.error(
                 f"Unable to generate a response: {exc}"
             )
+
             st.stop()
 
     st.session_state.messages.append(
