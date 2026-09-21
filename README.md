@@ -2,7 +2,9 @@
 
 K-GPT is an instruction-tuned GPT-2 Medium language model built from the
 GPT implementation developed while working through Sebastian Raschka's
-*Build a Large Language Model (From Scratch)* material.
+*Build a Large Language Model (From Scratch)* material. 
+A GPT-2 Medium model instruction-fine-tuned on instruction-response data, 
+deployed with a session-based conversational interface.
 
 ## Deployment architecture
 
