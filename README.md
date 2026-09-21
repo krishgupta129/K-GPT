@@ -1,24 +1,39 @@
-# K-GPT local inference test
+# K-GPT
 
-This folder contains the first local inference layer for K-GPT.
+K-GPT is an instruction-tuned GPT-2 Medium language model built from the
+GPT implementation developed while working through Sebastian Raschka's
+*Build a Large Language Model (From Scratch)* material.
 
-Expected checkpoint:
-`../model/weights/gpt2-medium355M-sft.pth`
+## Deployment architecture
 
-Files:
-- `model/model.py`: GPT-2 Medium architecture matching the training checkpoint
-- `model/generate.py`: generation/token conversion utilities
-- `model/tokenizer.py`: GPT-2 tokenizer
-- `run_local.py`: loads the checkpoint on CUDA when available and generates a response
+- **GitHub:** application source code and model implementation
+- **Hugging Face:** 1.73 GB fine-tuned model checkpoint
+- **Streamlit Community Cloud:** public web interface
 
-Run from the K-GPT project root:
+The model checkpoint is intentionally kept outside the GitHub repository.
 
-    python run_local.py
+## Model
 
-The model configuration is GPT-2 Medium:
-- vocab_size: 50257
-- context_length: 1024
-- emb_dim: 1024
-- n_layers: 24
-- n_heads: 16
-- qkv_bias: True
+- Architecture: GPT-2 Medium
+- Parameters: approximately 355M
+- Vocabulary: 50,257 tokens
+- Context length: 1,024 tokens
+- Fine-tuned for instruction following
+
+## Running locally
+
+From the repository root:
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+The Streamlit app downloads the public checkpoint from the Hugging Face
+model repository on first load and caches the loaded model for subsequent
+requests.
+
+## Notes
+
+K-GPT is a personal/educational project. Its responses can be incorrect,
+incomplete, or inconsistent on some tasks.

@@ -1,2 +1,4 @@
-torch>=2.5
-tiktoken>=0.8
+streamlit>=1.45,<2
+torch==2.5.1
+tiktoken>=0.8,<1
+huggingface_hub>=0.30,<1
