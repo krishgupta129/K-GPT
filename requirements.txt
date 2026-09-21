@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 streamlit>=1.45,<2
 torch==2.5.1+cpu
 tiktoken>=0.8,<1
