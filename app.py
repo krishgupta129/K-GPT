@@ -1,17 +1,11 @@
 import streamlit as st
 import torch
-import tiktoken
 from huggingface_hub import hf_hub_download
 
 from model.model import GPTModel
-from model.generate import generate
+from model.generate import generate, text_to_token_ids, token_ids_to_text
+from model.tokenizer import tokenizer
 
-
-st.set_page_config(
-    page_title="K-GPT",
-    page_icon=None,
-    layout="centered",
-)
 
 BASE_CONFIG = {
     "vocab_size": 50257,
@@ -23,129 +17,170 @@ BASE_CONFIG = {
     "n_heads": 16,
 }
 
-MODEL_REPO = "kg5290/K-GPT-model"
+REPO_ID = "kg5290/K-GPT-model"
 MODEL_FILE = "gpt2-medium355M-sft.pth"
 
+MAX_CONTEXT_TOKENS = 864
+DEFAULT_MAX_NEW_TOKENS = 160
 
-@st.cache_resource(show_spinner=False)
+st.set_page_config(
+    page_title="K-GPT",
+    page_icon=None,
+    layout="centered",
+)
+
+
+def build_instruction_prompt(instruction, history):
+    history_text = ""
+
+    if history:
+        history_lines = []
+        for message in history:
+            role = "User" if message["role"] == "user" else "K-GPT"
+            history_lines.append(f"{role}: {message['content']}")
+
+        history_text = (
+            "\n\n### Input:\n"
+            "Previous conversation:\n"
+            + "\n\n".join(history_lines)
+        )
+
+    return (
+        "Below is an instruction that describes a task. "
+        "Write a response that appropriately completes the request."
+        f"\n\n### Instruction:\n{instruction}"
+        f"{history_text}"
+        "\n\n### Response:\n"
+    )
+
+
+def trim_history_for_context(instruction, history):
+    usable_history = list(history)
+
+    while usable_history:
+        prompt = build_instruction_prompt(instruction, usable_history)
+        if len(tokenizer.encode(prompt)) <= MAX_CONTEXT_TOKENS:
+            return prompt
+        usable_history.pop(0)
+
+    prompt = build_instruction_prompt(instruction, [])
+    tokens = tokenizer.encode(prompt)
+
+    if len(tokens) > MAX_CONTEXT_TOKENS:
+        tokens = tokens[-MAX_CONTEXT_TOKENS:]
+        prompt = tokenizer.decode(tokens)
+
+    return prompt
+
+
+@st.cache_resource(show_spinner="Loading K-GPT model...")
 def load_model():
     checkpoint_path = hf_hub_download(
-        repo_id=MODEL_REPO,
+        repo_id=REPO_ID,
         filename=MODEL_FILE,
     )
 
     model = GPTModel(BASE_CONFIG)
-
     state = torch.load(
         checkpoint_path,
         map_location="cpu",
         weights_only=True,
-        mmap=True,
     )
-
-    model.load_state_dict(state, assign=True)
+    model.load_state_dict(state)
     model.eval()
 
     return model
 
 
-@st.cache_resource
-def get_tokenizer():
-    return tiktoken.get_encoding("gpt2")
-
-
-def format_prompt(instruction):
-    return (
-        "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request."
-        f"\n\n### Instruction:\n{instruction}"
-        "\n\n### Response:\n"
-    )
-
-
-def generate_response(instruction, max_new_tokens, temperature):
+def generate_response(instruction, history, max_new_tokens):
     model = load_model()
-    tokenizer = get_tokenizer()
+    prompt = trim_history_for_context(instruction, history)
 
-    prompt = format_prompt(instruction)
-    encoded = tokenizer.encode(
-        prompt,
-        allowed_special={"<|endoftext|>"},
-    )
-
-    encoded = encoded[-BASE_CONFIG["context_length"]:]
-    input_ids = torch.tensor(encoded, dtype=torch.long).unsqueeze(0)
+    token_ids = text_to_token_ids(prompt, tokenizer)
 
     with torch.inference_mode():
         output_ids = generate(
             model=model,
-            idx=input_ids,
+            idx=token_ids,
             max_new_tokens=max_new_tokens,
             context_size=BASE_CONFIG["context_length"],
-            temperature=temperature,
             eos_id=50256,
         )
 
-    output_text = tokenizer.decode(output_ids.squeeze(0).tolist())
+    generated_text = token_ids_to_text(output_ids, tokenizer)
+    response = generated_text[len(prompt):].strip()
 
-    if output_text.startswith(prompt):
-        output_text = output_text[len(prompt):]
+    if "### Response:" in response:
+        response = response.replace("### Response:", "", 1).strip()
 
-    if "### Response:" in output_text:
-        output_text = output_text.split("### Response:", 1)[-1]
+    return response
 
-    if "### Instruction:" in output_text:
-        output_text = output_text.split("### Instruction:", 1)[0]
 
-    return output_text.strip()
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 
 st.title("K-GPT")
-st.caption("Instruction-tuned GPT-2 Medium, fine-tuned for instruction following.")
+st.caption("GPT-2 Medium instruction-fine-tuned model.")
 
-instruction = st.text_area(
-    "Instruction",
-    placeholder="Enter an instruction for K-GPT...",
-    height=150,
-)
+with st.sidebar:
+    st.subheader("K-GPT")
+    st.caption("Current session")
 
-with st.expander("Generation settings"):
+    if st.button("New chat", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.divider()
+
+    st.subheader("Generation")
     max_new_tokens = st.slider(
-        "Maximum new tokens",
+        "Maximum response length",
         min_value=32,
-        max_value=160,
-        value=96,
+        max_value=256,
+        value=DEFAULT_MAX_NEW_TOKENS,
         step=16,
     )
-    temperature = st.slider(
-        "Temperature",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.0,
-        step=0.1,
-        help="0 uses deterministic greedy generation. Higher values introduce more variation.",
+
+    st.caption("Conversation memory exists only for the current session.")
+
+chat_height = 520 if st.session_state.messages else 180
+
+with st.container(height=chat_height, border=False):
+    if not st.session_state.messages:
+        st.caption("Start a conversation below.")
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+
+prompt = st.chat_input("Message K-GPT")
+
+if prompt:
+    previous_history = list(st.session_state.messages)
+
+    st.session_state.messages.append(
+        {"role": "user", "content": prompt}
     )
 
-generate_clicked = st.button("Generate", type="primary", use_container_width=True)
+    with st.spinner("Generating response..."):
+        try:
+            response = generate_response(
+                instruction=prompt,
+                history=previous_history,
+                max_new_tokens=max_new_tokens,
+            )
+        except Exception as exc:
+            st.session_state.messages.pop()
+            st.error(f"Unable to generate a response: {exc}")
+            st.stop()
 
-if generate_clicked:
-    if not instruction.strip():
-        st.warning("Enter an instruction first.")
-    else:
-        with st.spinner("Generating response..."):
-            try:
-                response = generate_response(
-                    instruction.strip(),
-                    max_new_tokens,
-                    temperature,
-                )
-                st.subheader("Response")
-                st.write(response if response else "No response was generated.")
-            except Exception as exc:
-                st.error(
-                    "The model could not be loaded or the response could not be generated."
-                )
-                st.exception(exc)
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response}
+    )
 
-st.divider()
-st.caption("K-GPT • GPT-2 Medium (355M parameters) • Local model inference")
+    st.rerun()
+
+
+st.caption("K-GPT • GPT-2 Medium (355M parameters) • Session-based chat")
