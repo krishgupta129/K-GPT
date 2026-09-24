@@ -20,7 +20,7 @@ BASE_CONFIG = {
 }
 
 REPO_ID = "kg5290/K-GPT-model"
-MODEL_FILE = "gpt2-medium355M-sft.pth"
+MODEL_FILE = "k_gpt_v2_beta_deploy.pth"
 
 MAX_CONTEXT_TOKENS = 864
 DEFAULT_MAX_NEW_TOKENS = 160
