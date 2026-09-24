@@ -27,8 +27,8 @@ DEFAULT_MAX_NEW_TOKENS = 160
 
 
 st.set_page_config(
-    page_title="K-GPT",
-    page_icon=None,
+    page_title="K-GPT v2 Beta",
+    page_icon="🤖",
     layout="centered",
 )
 
@@ -265,14 +265,20 @@ if "messages" not in st.session_state:
 
 
 st.title("K-GPT")
+st.markdown(
+    "<span style=\"display:inline-block;padding:4px 10px;border-radius:999px;"
+    "background:rgba(255,75,75,0.12);color:#ff6b6b;font-size:0.82rem;"
+    "font-weight:600;letter-spacing:0.03em;\">v2 BETA</span>",
+    unsafe_allow_html=True,
+)
 st.caption(
-    "GPT-2 Medium instruction-fine-tuned model."
+    "Instruction-fine-tuned language model · Training Step 17,000"
 )
 
 
 with st.sidebar:
     st.subheader("K-GPT")
-    st.caption("Current session")
+    st.caption("v2 Beta · Step 17,000")
 
     if st.button(
         "New chat",
@@ -296,6 +302,11 @@ with st.sidebar:
     st.caption(
         "Conversation memory exists only for the current session."
     )
+
+    st.divider()
+    st.caption("K-GPT v2 Beta")
+    st.caption("406,286,336 trainable parameters")
+    st.caption("Context window: 1,024 tokens")
 
 
 chat_height = (
@@ -362,5 +373,5 @@ if prompt:
 
 
 st.caption(
-    "K-GPT • GPT-2 Medium (355M parameters) • Session-based chat"
+    "K-GPT v2 Beta • Step 17,000 • Session-based chat"
 )
