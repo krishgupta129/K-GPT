@@ -272,13 +272,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.caption(
-    "Instruction-fine-tuned language model · Training Step 17,000"
+    "Instruction-fine-tuned language model"
 )
 
 
 with st.sidebar:
     st.subheader("K-GPT")
-    st.caption("v2 Beta · Step 17,000")
+    st.caption("v2 Beta")
 
     if st.button(
         "New chat",
@@ -302,11 +302,6 @@ with st.sidebar:
     st.caption(
         "Conversation memory exists only for the current session."
     )
-
-    st.divider()
-    st.caption("K-GPT v2 Beta")
-    st.caption("406,286,336 trainable parameters")
-    st.caption("Context window: 1,024 tokens")
 
 
 chat_height = (
@@ -373,5 +368,5 @@ if prompt:
 
 
 st.caption(
-    "K-GPT v2 Beta • Step 17,000 • Session-based chat"
+    "K-GPT v2 Beta • Session-based chat"
 )
