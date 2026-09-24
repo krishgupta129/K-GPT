@@ -1,0 +1,571 @@
+{
+  "train": {
+    "split": "train",
+    "total_examples": 1033407,
+    "token_statistics": {
+      "minimum": 19,
+      "maximum": 34206,
+      "average": 920.0739602112236,
+      "median": 633,
+      "over_512": 581128,
+      "over_512_percentage": 56.23418459522724,
+      "over_1024": 379080,
+      "over_1024_percentage": 36.682546179772345
+    },
+    "assistant_loss_statistics": {
+      "total_tokens": 950810871,
+      "total_assistant_tokens": 672680013,
+      "average_assistant_tokens": 650.934252429101,
+      "assistant_token_percentage": 70.7480355470189
+    },
+    "conversation_statistics": {
+      "system_examples": 315557,
+      "system_percentage": 30.53559730096661,
+      "multi_turn_examples": 428023,
+      "multi_turn_percentage": 41.41862789781761,
+      "empty_assistant_examples": 0,
+      "malformed_examples": 0
+    },
+    "role_counts": {
+      "user": 1923879,
+      "assistant": 1923626,
+      "system": 315557
+    },
+    "category_counts": {
+      "math": 489575,
+      "coding": 465570,
+      "system_instruction": 423920,
+      "conversation": 947194,
+      "reasoning": 395636,
+      "summarization": 141009,
+      "rewriting": 125343,
+      "general": 33477,
+      "function_calling": 146528
+    },
+    "longest_examples": [
+      {
+        "index": 752050,
+        "tokens": 34206,
+        "assistant_tokens": 244,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 225377,
+        "tokens": 33702,
+        "assistant_tokens": 5,
+        "categories": [
+          "reasoning",
+          "system_instruction",
+          "conversation"
+        ]
+      },
+      {
+        "index": 761658,
+        "tokens": 33687,
+        "assistant_tokens": 46,
+        "categories": [
+          "reasoning",
+          "system_instruction",
+          "conversation"
+        ]
+      },
+      {
+        "index": 511243,
+        "tokens": 32820,
+        "assistant_tokens": 225,
+        "categories": [
+          "math",
+          "coding",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 613269,
+        "tokens": 32047,
+        "assistant_tokens": 113,
+        "categories": [
+          "coding",
+          "reasoning",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 255471,
+        "tokens": 31694,
+        "assistant_tokens": 246,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "rewriting",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 830834,
+        "tokens": 31171,
+        "assistant_tokens": 208,
+        "categories": [
+          "coding",
+          "reasoning",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 585223,
+        "tokens": 30809,
+        "assistant_tokens": 183,
+        "categories": [
+          "math",
+          "coding",
+          "rewriting",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 693592,
+        "tokens": 30022,
+        "assistant_tokens": 114,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "conversation"
+        ]
+      },
+      {
+        "index": 76811,
+        "tokens": 29979,
+        "assistant_tokens": 212,
+        "categories": [
+          "math",
+          "coding",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 234401,
+        "tokens": 29835,
+        "assistant_tokens": 165,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 963624,
+        "tokens": 29785,
+        "assistant_tokens": 162,
+        "categories": [
+          "coding",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 543431,
+        "tokens": 29716,
+        "assistant_tokens": 84,
+        "categories": [
+          "coding",
+          "reasoning",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 444123,
+        "tokens": 29478,
+        "assistant_tokens": 229,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "rewriting",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 452192,
+        "tokens": 29423,
+        "assistant_tokens": 271,
+        "categories": [
+          "coding",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 895311,
+        "tokens": 29412,
+        "assistant_tokens": 140,
+        "categories": [
+          "math",
+          "coding",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 957633,
+        "tokens": 29293,
+        "assistant_tokens": 172,
+        "categories": [
+          "coding",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 519972,
+        "tokens": 29129,
+        "assistant_tokens": 181,
+        "categories": [
+          "math",
+          "coding",
+          "conversation"
+        ]
+      },
+      {
+        "index": 699158,
+        "tokens": 29108,
+        "assistant_tokens": 142,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "conversation"
+        ]
+      },
+      {
+        "index": 923104,
+        "tokens": 29059,
+        "assistant_tokens": 193,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation"
+        ]
+      }
+    ]
+  },
+  "val": {
+    "split": "val",
+    "total_examples": 10491,
+    "token_statistics": {
+      "minimum": 29,
+      "maximum": 19811,
+      "average": 908.3632637498808,
+      "median": 630,
+      "over_512": 5942,
+      "over_512_percentage": 56.639023925269285,
+      "over_1024": 3840,
+      "over_1024_percentage": 36.60280240205891
+    },
+    "assistant_loss_statistics": {
+      "total_tokens": 9529639,
+      "total_assistant_tokens": 6852004,
+      "average_assistant_tokens": 653.1316366409303,
+      "assistant_token_percentage": 71.90203112625777
+    },
+    "conversation_statistics": {
+      "system_examples": 3205,
+      "system_percentage": 30.5499952340101,
+      "multi_turn_examples": 4356,
+      "multi_turn_percentage": 41.52130397483557,
+      "empty_assistant_examples": 0,
+      "malformed_examples": 0
+    },
+    "role_counts": {
+      "user": 19527,
+      "assistant": 19524,
+      "system": 3205
+    },
+    "category_counts": {
+      "math": 5036,
+      "coding": 4779,
+      "reasoning": 4026,
+      "rewriting": 1270,
+      "conversation": 9647,
+      "system_instruction": 4302,
+      "summarization": 1428,
+      "general": 334,
+      "function_calling": 1562
+    },
+    "longest_examples": [
+      {
+        "index": 2715,
+        "tokens": 19811,
+        "assistant_tokens": 367,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 8222,
+        "tokens": 17136,
+        "assistant_tokens": 138,
+        "categories": [
+          "math",
+          "coding",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 6781,
+        "tokens": 16811,
+        "assistant_tokens": 249,
+        "categories": [
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 2769,
+        "tokens": 15286,
+        "assistant_tokens": 109,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "conversation"
+        ]
+      },
+      {
+        "index": 3015,
+        "tokens": 14914,
+        "assistant_tokens": 189,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 5835,
+        "tokens": 14576,
+        "assistant_tokens": 107,
+        "categories": [
+          "coding",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 8359,
+        "tokens": 13421,
+        "assistant_tokens": 252,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 2176,
+        "tokens": 13359,
+        "assistant_tokens": 363,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 6048,
+        "tokens": 12888,
+        "assistant_tokens": 191,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 4343,
+        "tokens": 12845,
+        "assistant_tokens": 256,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 5090,
+        "tokens": 12324,
+        "assistant_tokens": 274,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "rewriting",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 3560,
+        "tokens": 11932,
+        "assistant_tokens": 7055,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "conversation"
+        ]
+      },
+      {
+        "index": 5114,
+        "tokens": 11748,
+        "assistant_tokens": 306,
+        "categories": [
+          "coding",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 6397,
+        "tokens": 11330,
+        "assistant_tokens": 94,
+        "categories": [
+          "coding",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 1092,
+        "tokens": 11021,
+        "assistant_tokens": 76,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "conversation"
+        ]
+      },
+      {
+        "index": 5062,
+        "tokens": 10496,
+        "assistant_tokens": 169,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "rewriting",
+          "conversation",
+          "function_calling"
+        ]
+      },
+      {
+        "index": 7548,
+        "tokens": 10459,
+        "assistant_tokens": 236,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "system_instruction",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 4994,
+        "tokens": 10250,
+        "assistant_tokens": 5193,
+        "categories": [
+          "math",
+          "coding",
+          "conversation"
+        ]
+      },
+      {
+        "index": 6345,
+        "tokens": 10186,
+        "assistant_tokens": 220,
+        "categories": [
+          "math",
+          "coding",
+          "reasoning",
+          "summarization",
+          "conversation"
+        ]
+      },
+      {
+        "index": 2095,
+        "tokens": 10169,
+        "assistant_tokens": 6163,
+        "categories": [
+          "coding",
+          "reasoning",
+          "conversation"
+        ]
+      }
+    ]
+  }
+}

@@ -1,8 +1,17 @@
-# Model checkpoints
+# Model checkpoints / weights
 *.pth
 *.pt
 *.bin
 *.safetensors
+
+# Training datasets / archives
+*.zip
+training/k_gpt_v2_dataset/
+model/checkpoints/
+checkpoints/
+
+# V1 checkpoint reconstruction parts
+model/weights/checkpoint_parts/
 
 # Python
 __pycache__/
@@ -23,5 +32,11 @@ env/
 .DS_Store
 Thumbs.db
 
-# Environment variables
+# Secrets / credentials
+credentials.json
+token.json
 .env
+
+# Local development utilities
+drive_auth.py
+split_checkpoint.py

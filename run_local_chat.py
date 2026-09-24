@@ -2,8 +2,14 @@ import os
 import torch
 
 from model.model import GPTModel
-from model.generate import generate, text_to_token_ids, token_ids_to_text
+from model.generate import (
+    generate,
+    text_to_token_ids,
+    token_ids_to_text,
+    clean_response,
+)
 from model.tokenizer import tokenizer
+from model.prompt_template import build_chat_prompt
 
 
 BASE_CONFIG = {
@@ -20,21 +26,12 @@ CHECKPOINT = os.path.join(
     os.path.dirname(__file__),
     "model",
     "weights",
-    "gpt2-medium355M-sft.pth",
+    "k_gpt_v2_beta_deploy.pth",
 )
 
 
-def format_prompt(user_input):
-    return (
-        "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request."
-        f"\n\n### Instruction:\n{user_input}"
-        "\n\n### Response:\n"
-    )
-
-
-def generate_response(model, user_input, device, max_new_tokens=120):
-    prompt = format_prompt(user_input)
+def generate_response(model, instruction, history, device, max_new_tokens=120):
+    prompt = build_chat_prompt(instruction, history)
 
     token_ids = text_to_token_ids(prompt, tokenizer).to(device)
 
@@ -48,11 +45,9 @@ def generate_response(model, user_input, device, max_new_tokens=120):
         )
 
     generated_text = token_ids_to_text(output_ids, tokenizer)
-
     response = generated_text[len(prompt):]
-    response = response.replace("### Response:", "").strip()
 
-    return response
+    return clean_response(response)
 
 
 def load_model():
@@ -63,7 +58,7 @@ def load_model():
     if device.type == "cuda":
         print("GPU:", torch.cuda.get_device_name(0))
 
-    print("Loading K-GPT checkpoint...")
+    print("Loading K-GPT v2 Beta...")
 
     model = GPTModel(BASE_CONFIG)
 
@@ -77,7 +72,7 @@ def load_model():
     model.to(device)
     model.eval()
 
-    print("Model loaded successfully.\n")
+    print("K-GPT v2 Beta loaded successfully.\n")
 
     return model, device
 
@@ -85,12 +80,14 @@ def load_model():
 def main():
     model, device = load_model()
 
+    history = []
+
     print("=" * 60)
-    print("                     K-GPT")
-    print("              GPT-2 Medium 355M")
+    print("                 K-GPT v2 Beta")
+    print("                    Chat Mode")
     print("=" * 60)
-    print("Type your instruction and press Enter.")
-    print("Commands: /exit, /quit")
+    print("Universal K-GPT Chat Template enabled.")
+    print("Commands: /exit, /quit, /clear")
     print("=" * 60)
 
     while True:
@@ -107,20 +104,40 @@ def main():
             print("\nK-GPT: Goodbye!")
             break
 
-        print("\nK-GPT: ", end="", flush=True)
+        if user_input.lower() == "/clear":
+            history = []
+            print("\nConversation cleared.")
+            continue
 
         try:
             response = generate_response(
                 model,
                 user_input,
+                history,
                 device,
                 max_new_tokens=120,
             )
-            print(response)
+
+            print("\nK-GPT:", response)
+
+            history.append(
+                {
+                    "role": "user",
+                    "content": user_input,
+                }
+            )
+
+            history.append(
+                {
+                    "role": "assistant",
+                    "content": response,
+                }
+            )
+
         except RuntimeError as e:
             if "out of memory" in str(e).lower() and device.type == "cuda":
                 torch.cuda.empty_cache()
-                print("\nGPU memory ran out. Try a shorter prompt.")
+                print("\nGPU memory ran out. Try a shorter conversation.")
             else:
                 raise
 

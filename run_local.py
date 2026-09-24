@@ -2,8 +2,15 @@ import os
 import torch
 
 from model.model import GPTModel
-from model.generate import generate, text_to_token_ids, token_ids_to_text
+from model.generate import (
+    generate,
+    text_to_token_ids,
+    token_ids_to_text,
+    clean_response,
+)
 from model.tokenizer import tokenizer
+from model.prompt_template import build_prompt
+
 
 BASE_CONFIG = {
     "vocab_size": 50257,
@@ -19,31 +26,12 @@ CHECKPOINT = os.path.join(
     os.path.dirname(__file__),
     "model",
     "weights",
-    "gpt2-medium355M-sft.pth",
+    "k_gpt_v2_beta_deploy.pth",
 )
 
-def extract_response(generated_text, input_text):
-    return generated_text[len(input_text):].replace("### Response:", "").strip()
 
-def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Device:", device)
-    if device.type == "cuda":
-        print("GPU:", torch.cuda.get_device_name(0))
-
-    print("Loading K-GPT checkpoint...")
-    model = GPTModel(BASE_CONFIG)
-    state = torch.load(CHECKPOINT, map_location="cpu", weights_only=True)
-    model.load_state_dict(state)
-    model.to(device)
-    model.eval()
-    print("Model loaded successfully.")
-
-    prompt = """Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-Explain machine learning in simple terms.
-"""
+def generate_response(model, instruction, device, max_new_tokens=120):
+    prompt = build_prompt(instruction)
 
     token_ids = text_to_token_ids(prompt, tokenizer).to(device)
 
@@ -51,15 +39,88 @@ Explain machine learning in simple terms.
         output_ids = generate(
             model=model,
             idx=token_ids,
-            max_new_tokens=50,
+            max_new_tokens=max_new_tokens,
             context_size=BASE_CONFIG["context_length"],
             eos_id=50256,
         )
 
-    generated = token_ids_to_text(output_ids, tokenizer)
-    response = extract_response(generated, prompt)
-    print("\nK-GPT response:\n")
-    print(response)
+    generated_text = token_ids_to_text(output_ids, tokenizer)
+    response = generated_text[len(prompt):]
+
+    return clean_response(response)
+
+
+def load_model():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    print("Device:", device)
+
+    if device.type == "cuda":
+        print("GPU:", torch.cuda.get_device_name(0))
+
+    print("Loading K-GPT v2 Beta...")
+
+    model = GPTModel(BASE_CONFIG)
+
+    state = torch.load(
+        CHECKPOINT,
+        map_location="cpu",
+        weights_only=True,
+    )
+
+    model.load_state_dict(state)
+    model.to(device)
+    model.eval()
+
+    print("K-GPT v2 Beta loaded successfully.\n")
+
+    return model, device
+
+
+def main():
+    model, device = load_model()
+
+    print("=" * 60)
+    print("                 K-GPT v2 Beta")
+    print("             GPT-2 Medium Architecture")
+    print("=" * 60)
+    print("Universal K-GPT Inference Template enabled.")
+    print("Type your instruction and press Enter.")
+    print("Commands: /exit, /quit")
+    print("=" * 60)
+
+    while True:
+        try:
+            user_input = input("\nYou: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\n\nK-GPT: Goodbye!")
+            break
+
+        if not user_input:
+            continue
+
+        if user_input.lower() in {"/exit", "/quit"}:
+            print("\nK-GPT: Goodbye!")
+            break
+
+        print("\nK-GPT: ", end="", flush=True)
+
+        try:
+            response = generate_response(
+                model,
+                user_input,
+                device,
+                max_new_tokens=120,
+            )
+            print(response)
+
+        except RuntimeError as e:
+            if "out of memory" in str(e).lower() and device.type == "cuda":
+                torch.cuda.empty_cache()
+                print("\nGPU memory ran out. Try a shorter prompt.")
+            else:
+                raise
+
 
 if __name__ == "__main__":
     main()
