@@ -34,30 +34,18 @@ st.set_page_config(
 
 
 def build_instruction_prompt(instruction, history):
-    instruction_text = (
-        "Answer the current user request using the previous "
-        "conversation only when it is relevant. "
-        "Respond only to the current user request."
-    )
-
     if not history:
         return (
             "Below is an instruction that describes a task. "
             "Write a response that appropriately completes the request."
-            f"\n\n### Instruction:\n"
-            f"{instruction_text}\n\n"
-            f"Current user request:\n{instruction}"
+            f"\n\n### Instruction:\n{instruction}"
             "\n\n### Response:\n"
         )
 
     history_lines = []
 
     for message in history:
-        if message["role"] == "user":
-            role = "User"
-        else:
-            role = "K-GPT"
-
+        role = "User" if message["role"] == "user" else "K-GPT"
         history_lines.append(
             f"{role}: {message['content']}"
         )
@@ -67,8 +55,6 @@ def build_instruction_prompt(instruction, history):
     return (
         "Below is an instruction that describes a task. "
         "Write a response that appropriately completes the request."
-        f"\n\n### Instruction:\n"
-        f"{instruction_text}"
         f"\n\n### Input:\n"
         f"Previous conversation:\n"
         f"{history_text}"
@@ -116,10 +102,6 @@ def trim_history_for_context(instruction, history):
         "Below is an instruction that describes a task. "
         "Write a response that appropriately completes the request."
         "\n\n### Instruction:\n"
-        "Answer the current user request using the previous "
-        "conversation only when it is relevant. "
-        "Respond only to the current user request."
-        "\n\nCurrent user request:\n"
     )
 
     suffix = "\n\n### Response:\n"
@@ -265,9 +247,7 @@ if "messages" not in st.session_state:
 
 
 st.title("K-GPT")
-st.caption(
-    "Instruction-fine-tuned language model"
-)
+st.caption("Instruction-fine-tuned language model")
 
 
 with st.sidebar:
