@@ -20,14 +20,14 @@ BASE_CONFIG = {
 }
 
 REPO_ID = "kg5290/K-GPT-model"
-MODEL_FILE = "k_gpt_v2_beta_deploy.pth"
+MODEL_FILE = "k_gpt_v2_25k_deploy.pth"
 
 MAX_CONTEXT_TOKENS = 864
-DEFAULT_MAX_NEW_TOKENS = 160
+DEFAULT_MAX_NEW_TOKENS = 192
 
 
 st.set_page_config(
-    page_title="K-GPT v2 Beta",
+    page_title="K-GPT v2",
     page_icon="🤖",
     layout="centered",
 )
@@ -265,12 +265,6 @@ if "messages" not in st.session_state:
 
 
 st.title("K-GPT")
-st.markdown(
-    "<span style=\"display:inline-block;padding:4px 10px;border-radius:999px;"
-    "background:rgba(255,75,75,0.12);color:#ff6b6b;font-size:0.82rem;"
-    "font-weight:600;letter-spacing:0.03em;\">v2 BETA</span>",
-    unsafe_allow_html=True,
-)
 st.caption(
     "Instruction-fine-tuned language model"
 )
@@ -278,7 +272,7 @@ st.caption(
 
 with st.sidebar:
     st.subheader("K-GPT")
-    st.caption("v2 Beta")
+    st.caption("v2")
 
     if st.button(
         "New chat",
@@ -368,5 +362,5 @@ if prompt:
 
 
 st.caption(
-    "K-GPT v2 Beta • Session-based chat"
+    "K-GPT v2 • Session-based chat"
 )
